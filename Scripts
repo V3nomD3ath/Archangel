@@ -1,53 +1,189 @@
--- GUI & Auto-Farm Script for MM2 Beach Balls | Made for Yxm21Km :3
+-- MM2 Beach Ball Farm | Made For Yxm21Km :3 (Smaller Transparent, Draggable GUI, RGB Text, AFK Button)
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local VirtualUser = game:GetService("VirtualUser")
+local LocalPlayer = Players.LocalPlayer
+local farmEnabled = false
+local delay = 9.6 -- Delay in seconds
+local map = nil
+local afkEnabled = false
 
-local player = game.Players.LocalPlayer local character = player.Character or player.CharacterAdded:Wait() local humPart = character:WaitForChild("HumanoidRootPart")
+-- GUI Setup
+local gui = Instance.new("ScreenGui")
+gui.Name = "BeachBallFarmGUI"
+gui.ResetOnSpawn = false
+gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
-player.CharacterAdded:Connect(function(char) character = char humPart = char:WaitForChild("HumanoidRootPart") end)
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 140)  -- Smaller width and height
+frame.Position = UDim2.new(0.65, 0, 0.1, 0) -- Positioned at 65%
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.BackgroundTransparency = 0.75 -- Mostly transparent
+frame.BorderSizePixel = 0
+frame.Parent = gui
+frame.Active = true
+frame.Draggable = true
 
-local map for _, m in ipairs(game.Workspace:GetDescendants()) do if m:IsA("Model") and m.Name == "CoinContainer" then map = m break end end
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 25)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "Made For Yxm21Km :3"
+title.TextColor3 = Color3.new(1, 1, 1) -- initial white, will be RGB animated
+title.Font = Enum.Font.Code
+title.TextSize = 12
+title.Parent = frame
 
-game.Workspace.DescendantAdded:Connect(function(m) if m:IsA("Model") and m.Name == "CoinContainer" then map = m end end)
+local onButton = Instance.new("TextButton")
+onButton.Size = UDim2.new(0, 90, 0, 35)  -- Smaller button
+onButton.Position = UDim2.new(0.1, 0, 0.25, 0)
+onButton.BackgroundColor3 = Color3.fromRGB(85, 255, 85)
+onButton.Text = "Start Farm"
+onButton.TextColor3 = Color3.new(1, 1, 1)
+onButton.Font = Enum.Font.SourceSansBold
+onButton.TextSize = 16
+onButton.Parent = frame
 
--- Auto-Farm Settings local delay = 1.6 getgenv().farm = false
+local offButton = Instance.new("TextButton")
+offButton.Size = UDim2.new(0, 90, 0, 35)
+offButton.Position = UDim2.new(0.55, 0, 0.25, 0)
+offButton.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
+offButton.Text = "Stop Farm"
+offButton.TextColor3 = Color3.new(1, 1, 1)
+offButton.Font = Enum.Font.SourceSansBold
+offButton.TextSize = 16
+offButton.Parent = frame
 
--- GUI Setup local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui")) gui.ResetOnSpawn = false
+local afkButton = Instance.new("TextButton")
+afkButton.Size = UDim2.new(0, 180, 0, 30)
+afkButton.Position = UDim2.new(0.5, -90, 0.7, 0)
+afkButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+afkButton.Text = "Activate AFK"
+afkButton.TextColor3 = Color3.new(1, 1, 1) -- RGB animated
+afkButton.Font = Enum.Font.SourceSansBold
+afkButton.TextSize = 16
+afkButton.Parent = frame
 
-local frame = Instance.new("Frame") frame.Size = UDim2.new(0, 200, 0, 140) frame.Position = UDim2.new(0.65, 0, 0.1, 0) frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) frame.BackgroundTransparency = 0.75 frame.BorderSizePixel = 0 frame.Active = true frame.Draggable = true frame.Parent = gui
-
-local title = Instance.new("TextLabel") title.Size = UDim2.new(1, 0, 0, 25) title.Position = UDim2.new(0, 0, 0, 0) title.BackgroundTransparency = 1 title.Text = "Made For Yxm21Km :3" title.Font = Enum.Font.Code title.TextSize = 12 title.TextColor3 = Color3.new(1, 1, 1) title.Parent = frame
-
--- RGB Title Effect spawn(function() while true do for i = 0, 1, 0.01 do title.TextColor3 = Color3.fromHSV(i, 1, 1) wait(0.05) end end end)
-
--- Start Button local onButton = Instance.new("TextButton") onButton.Size = UDim2.new(0, 90, 0, 35) onButton.Position = UDim2.new(0.05, 0, 0.25, 0) onButton.BackgroundColor3 = Color3.fromRGB(85, 255, 85) onButton.Text = "Start Farm" onButton.TextColor3 = Color3.new(1, 1, 1) onButton.Font = Enum.Font.SourceSansBold onButton.TextSize = 16 onButton.Parent = frame
-
--- Stop Button local offButton = Instance.new("TextButton") offButton.Size = UDim2.new(0, 90, 0, 35) offButton.Position = UDim2.new(0.55, 0, 0.25, 0) offButton.BackgroundColor3 = Color3.fromRGB(255, 85, 85) offButton.Text = "Stop Farm" offButton.TextColor3 = Color3.new(1, 1, 1) offButton.Font = Enum.Font.SourceSansBold offButton.TextSize = 16 offButton.Parent = frame
-
--- Anti-AFK Button local afkButton = Instance.new("TextButton") afkButton.Size = UDim2.new(0, 180, 0, 30) afkButton.Position = UDim2.new(0.5, -90, 0.7, 0) afkButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40) afkButton.Text = "Activate AFK" afkButton.TextColor3 = Color3.new(1, 1, 1) afkButton.Font = Enum.Font.SourceSansBold afkButton.TextSize = 16 afkButton.Parent = frame
-
-spawn(function() while true do for i = 0, 1, 0.01 do afkButton.TextColor3 = Color3.fromHSV(i, 1, 1) wait(0.05) end end end)
-
--- Auto Farm Logic onButton.MouseButton1Click:Connect(function() getgenv().farm = true spawn(function() while getgenv().farm do if map and map.Parent then local balls = {} for _, coin in ipairs(map:GetChildren()) do if coin:IsA("Part") and coin.Name == "Coin_Server" and coin:GetAttribute("CoinID") == "BeachBall" then local cv = coin:FindFirstChild("CoinVisual") if cv and cv.Transparency ~= 1 then table.insert(balls, coin) end end end
-
-table.sort(balls, function(a, b)
-				return (humPart.Position - a.Position).Magnitude < (humPart.Position - b.Position).Magnitude
-			end)
-
-			for _, ball in ipairs(balls) do
-				if not getgenv().farm then break end
-				for _, p in pairs(character:GetChildren()) do
-					if p:IsA("BasePart") and p.CanCollide then p.CanCollide = false end
-				end
-				humPart.CFrame = ball.CFrame * CFrame.new(0, 6, 0)
-				task.wait(delay)
-			end
-		end
-		task.wait(0.5)
-	end
+onButton.MouseButton1Click:Connect(function()
+    farmEnabled = true
 end)
 
+offButton.MouseButton1Click:Connect(function()
+    farmEnabled = false
 end)
 
-offButton.MouseButton1Click:Connect(function() getgenv().farm = false end)
+local afkConnection = nil
+local function startAfk()
+    if afkConnection then return end
+    afkEnabled = true
+    afkConnection = LocalPlayer.Idled:Connect(function()
+        VirtualUser:ClickButton2(Vector2.new())
+    end)
+end
+local function stopAfk()
+    if afkConnection then
+        afkConnection:Disconnect()
+        afkConnection = nil
+    end
+    afkEnabled = false
+end
 
-afkButton.MouseButton1Click:Connect(function() local GC = getconnections or get_signal_cons if GC then for _, v in pairs(GC(player.Idled)) do if v.Disable then v:Disable() elseif v.Disconnect then v:Disconnect() end end else local vu = cloneref(game:GetService("VirtualUser")) player.Idled:Connect(function() vu:CaptureController() vu:ClickButton2(Vector2.new()) end) end end)
+afkButton.MouseButton1Click:Connect(function()
+    if afkEnabled then
+        stopAfk()
+        afkButton.Text = "Activate AFK"
+    else
+        startAfk()
+        afkButton.Text = "Deactivate AFK"
+    end
+end)
 
+-- RGB color animation for title text and AFK button text
+local hue = 0
+RunService.Heartbeat:Connect(function(dt)
+    hue = (hue + dt * 0.5) % 1 -- cycle every 2 seconds
+    local rgb = Color3.fromHSV(hue, 1, 1)
+    title.TextColor3 = rgb
+    afkButton.TextColor3 = rgb
+end)
+
+-- Detect CoinContainer
+game.Workspace.DescendantAdded:Connect(function(m)
+    if m:IsA("Model") and m.Name == "CoinContainer" then
+        map = m
+    end
+end)
+
+local function getHumanoidRootPart()
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    return char:FindFirstChild("HumanoidRootPart")
+end
+
+local function getSortedBalls()
+    local humPart = getHumanoidRootPart()
+    local balls = {}
+
+    if not map or not map.Parent then
+        for _, m in ipairs(workspace:GetDescendants()) do
+            if m:IsA("Model") and m.Name == "CoinContainer" then
+                map = m
+                break
+            end
+        end
+    end
+
+    if map then
+        for _, coin in ipairs(map:GetChildren()) do
+            if coin:IsA("Part") and coin.Name == "Coin_Server" and coin:GetAttribute("CoinID") == "BeachBall" then
+                local visual = coin:FindFirstChild("CoinVisual")
+                if visual and visual.Transparency ~= 1 then
+                    table.insert(balls, coin)
+                end
+            end
+        end
+    end
+
+    table.sort(balls, function(a, b)
+        return (humPart.Position - a.Position).Magnitude < (humPart.Position - b.Position).Magnitude
+    end)
+
+    return balls
+end
+
+local function flyTo(pos)
+    local humPart = getHumanoidRootPart()
+    if not humPart then return end
+
+    for _, p in pairs(humPart.Parent:GetChildren()) do
+        if p:IsA("BasePart") then p.CanCollide = false end
+    end
+
+    local dist = (humPart.Position - pos).Magnitude
+    local speed = 40
+    local travelTime = math.clamp(dist / speed, 0.2, 2)
+
+    local tween = TweenService:Create(humPart, TweenInfo.new(travelTime, Enum.EasingStyle.Linear), {
+        CFrame = CFrame.new(pos + Vector3.new(0, 4, 0))
+    })
+
+    tween:Play()
+    tween.Completed:Wait()
+end
+
+-- Farming loop
+task.spawn(function()
+    while true do
+        if farmEnabled then
+            local balls = getSortedBalls()
+            for _, ball in ipairs(balls) do
+                if not farmEnabled then break end
+                if ball and ball.Parent then
+                    flyTo(ball.Position)
+                    task.wait(delay)
+                end
+            end
+        end
+        task.wait(0.3)
+    end
+end)
